@@ -1,0 +1,501 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 350 100% 50%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 350 100% 50%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 350 100% 60%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 350 100% 60%;
+  }
+
+  /* Red Theme */
+  .theme-red {
+    --background: 350 100% 98%;
+    --foreground: 350 100% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 350 100% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 350 100% 10%;
+    --primary: 350 100% 50%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 350 30% 90%;
+    --secondary-foreground: 350 100% 20%;
+    --muted: 350 30% 94%;
+    --muted-foreground: 350 50% 40%;
+    --accent: 350 30% 90%;
+    --accent-foreground: 350 100% 20%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 350 30% 90%;
+    --input: 350 30% 90%;
+    --ring: 350 100% 50%;
+  }
+
+  .dark.theme-red {
+    --background: 350 100% 10%;
+    --foreground: 0 0% 98%;
+    --card: 350 100% 12%;
+    --card-foreground: 0 0% 98%;
+    --popover: 350 100% 12%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 350 100% 60%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 350 50% 20%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 350 50% 15%;
+    --muted-foreground: 350 30% 70%;
+    --accent: 350 50% 20%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 350 50% 20%;
+    --input: 350 50% 20%;
+    --ring: 350 100% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  /* Game Card */
+  .game-card {
+    @apply rounded-lg border bg-card p-4 shadow-sm transition-all duration-200 hover:shadow-md;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .game-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary)), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .game-card:hover::before {
+    opacity: 1;
+  }
+
+  .game-card-premium {
+    @apply border-primary/30;
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--primary) / 0.1) 100%);
+  }
+
+  .game-card-highlight {
+    @apply border-primary shadow-lg;
+    box-shadow: 0 0 15px rgba(255, 0, 53, 0.3);
+  }
+
+  /* Game Badge */
+  .game-badge {
+    @apply relative flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary;
+    box-shadow: 0 0 10px rgba(255, 0, 53, 0.3);
+  }
+
+  .game-badge-level {
+    @apply absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground;
+    box-shadow: 0 0 5px rgba(255, 0, 53, 0.5);
+  }
+
+  /* Game Progress Bar */
+  .game-progress {
+    @apply h-2 w-full overflow-hidden rounded-full bg-secondary;
+  }
+
+  .game-progress-bar {
+    @apply h-full bg-primary transition-all duration-300 ease-out;
+    background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.8));
+  }
+
+  .game-progress-xp {
+    @apply bg-gradient-to-r from-primary to-primary/80;
+    box-shadow: 0 0 5px rgba(255, 0, 53, 0.5);
+  }
+
+  /* Game Achievement */
+  .game-achievement {
+    @apply rounded-lg border p-4 transition-all duration-200;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .game-achievement::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .game-achievement:hover::after {
+    opacity: 1;
+  }
+
+  .game-achievement-unlocked {
+    @apply border-primary/30 bg-primary/5 hover:bg-primary/10;
+    box-shadow: 0 0 10px rgba(255, 0, 53, 0.2);
+  }
+
+  .game-achievement-locked {
+    @apply border-muted bg-muted/20 opacity-80 hover:opacity-100;
+  }
+
+  /* Game Icon Bounce */
+  .game-icon-bounce {
+    @apply transition-transform duration-200 hover:scale-110 active:scale-95;
+  }
+
+  /* Game Icon Float */
+  .game-icon-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* Game Button Glow */
+  .game-button-glow {
+    @apply relative overflow-hidden;
+    box-shadow: 0 0 10px rgba(255, 0, 53, 0.3);
+  }
+
+  .game-button-glow::after {
+    @apply absolute inset-0 -z-10 bg-gradient-to-r from-primary/0 via-primary/30 to-primary/0 opacity-0 blur-xl transition-opacity duration-1000 content-[''];
+  }
+
+  .game-button-glow:hover::after {
+    @apply opacity-100;
+  }
+
+  /* Game Text Gradient */
+  .game-text-gradient {
+    @apply bg-gradient-to-br from-primary to-primary/70 bg-clip-text text-transparent;
+  }
+
+  /* Game Streak Counter */
+  .game-streak {
+    @apply flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary;
+    box-shadow: 0 0 10px rgba(255, 0, 53, 0.3);
+  }
+
+  /* Game Points Animation */
+  .game-points-pop {
+    animation: points-pop 0.5s ease-out forwards;
+  }
+
+  @keyframes points-pop {
+    0% {
+      opacity: 0;
+      transform: scale(0.5) translateY(10px);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.2) translateY(-5px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  /* Game Confetti */
+  .game-confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: hsl(var(--primary));
+    border-radius: 50%;
+    animation: confetti-fall 3s ease-in-out forwards;
+  }
+
+  @keyframes confetti-fall {
+    0% {
+      transform: translateY(-100px) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) rotate(720deg);
+      opacity: 0;
+    }
+  }
+
+  /* Game Divider */
+  .game-divider {
+    @apply relative my-8 h-px w-full bg-border;
+  }
+
+  .game-divider::before {
+    @apply absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary content-[''];
+    box-shadow: 0 0 5px rgba(255, 0, 53, 0.5);
+  }
+
+  /* Quiz Animations */
+  .quiz-fade-in {
+    animation: quiz-fade-in 0.5s ease-out forwards;
+  }
+
+  @keyframes quiz-fade-in {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .quiz-fade-out {
+    animation: quiz-fade-out 0.5s ease-in forwards;
+  }
+
+  @keyframes quiz-fade-out {
+    0% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+  }
+
+  .quiz-slide-in {
+    animation: quiz-slide-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes quiz-slide-in {
+    0% {
+      opacity: 0;
+      transform: translateX(50px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .quiz-slide-out {
+    animation: quiz-slide-out 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes quiz-slide-out {
+    0% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(-50px);
+    }
+  }
+
+  .quiz-correct {
+    animation: quiz-correct 0.6s ease-out forwards;
+  }
+
+  @keyframes quiz-correct {
+    0% {
+      background-color: transparent;
+    }
+    30% {
+      background-color: hsl(142, 76%, 90%);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+
+  .quiz-incorrect {
+    animation: quiz-incorrect 0.6s ease-out forwards;
+  }
+
+  @keyframes quiz-incorrect {
+    0% {
+      background-color: transparent;
+    }
+    30% {
+      background-color: hsl(0, 76%, 90%);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+
+  .quiz-pulse {
+    animation: quiz-pulse 2s infinite;
+  }
+
+  @keyframes quiz-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.05);
+      opacity: 0.9;
+    }
+  }
+
+  .quiz-bounce {
+    animation: quiz-bounce 0.5s ease-in-out;
+  }
+
+  @keyframes quiz-bounce {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .quiz-spin {
+    animation: quiz-spin 0.5s ease-in-out;
+  }
+
+  @keyframes quiz-spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  .quiz-shake {
+    animation: quiz-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  }
+
+  @keyframes quiz-shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    20%,
+    60% {
+      transform: translateX(-5px);
+    }
+    40%,
+    80% {
+      transform: translateX(5px);
+    }
+  }
+
+  /* Floating animation */
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-20px) rotate(5deg);
+    }
+  }
+
+  /* Pulse animation */
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 0.2;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+
+  /* Spin animation */
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent;
+  }
+
+  /* Hero section */
+  .hero-pattern {
+    background-color: hsl(var(--background));
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FF0035' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  /* Feature card */
+  .feature-card {
+    @apply rounded-lg border bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/30;
+  }
+
+  /* Pricing card */
+  .pricing-card {
+    @apply rounded-lg border bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md;
+  }
+
+  .pricing-card-popular {
+    @apply border-primary shadow-md;
+  }
+
+  /* Testimonial card */
+  .testimonial-card {
+    @apply rounded-lg border bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md;
+  }
+}
