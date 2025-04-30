@@ -1,6 +1,6 @@
 import { toast } from "@/components/ui/use-toast"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tta-kha7.onrender.com"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tta-kha7.onrender.com/api"
 
 export interface LeaderboardEntry {
   id: string
@@ -16,7 +16,7 @@ export const leaderboardService = {
   async getDailyLeaderboard(filter?: string): Promise<LeaderboardEntry[]> {
     try {
       const token = localStorage.getItem("auth_token")
-      const url = new URL(`${API_BASE_URL}/api/leaderboard/daily`)
+      const url = new URL(`${API_BASE_URL}/leaderboard/daily`)
 
       if (filter && filter !== "all") {
         url.searchParams.append("tier", filter)
@@ -48,7 +48,7 @@ export const leaderboardService = {
   async getWeeklyLeaderboard(filter?: string): Promise<LeaderboardEntry[]> {
     try {
       const token = localStorage.getItem("auth_token")
-      const url = new URL(`${API_BASE_URL}/api/leaderboard/weekly`)
+      const url = new URL(`${API_BASE_URL}/leaderboard/weekly`)
 
       if (filter && filter !== "all") {
         url.searchParams.append("tier", filter)
@@ -80,7 +80,7 @@ export const leaderboardService = {
   async getAllTimeLeaderboard(filter?: string): Promise<LeaderboardEntry[]> {
     try {
       const token = localStorage.getItem("auth_token")
-      const url = new URL(`${API_BASE_URL}/api/leaderboard/all-time`)
+      const url = new URL(`${API_BASE_URL}/leaderboard/all-time`)
 
       if (filter && filter !== "all") {
         url.searchParams.append("tier", filter)

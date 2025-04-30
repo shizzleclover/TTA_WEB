@@ -1,7 +1,7 @@
 import { io, type Socket } from "socket.io-client"
 import { toast } from "@/components/ui/use-toast"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tta-kha7.onrender.com"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tta-kha7.onrender.com/api"
 
 let socket: Socket | null = null
 
@@ -11,7 +11,7 @@ export const socketService = {
       return socket
     }
 
-    socket = io(`${API_BASE_URL}/game`, {
+    socket = io(`${API_BASE_URL.replace("/api", "")}/game`, {
       auth: { token },
       transports: ["websocket"],
       reconnection: true,

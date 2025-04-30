@@ -1,6 +1,6 @@
 import { toast } from "@/components/ui/use-toast"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tta-kha7.onrender.com"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tta-kha7.onrender.com/api"
 
 export interface StudyMaterial {
   id: string
@@ -23,7 +23,7 @@ export const studyMaterialsService = {
   async getStudyMaterials(): Promise<StudyMaterial[]> {
     try {
       const token = localStorage.getItem("auth_token")
-      const response = await fetch(`${API_BASE_URL}/api/study-materials`, {
+      const response = await fetch(`${API_BASE_URL}/study-materials`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -49,7 +49,7 @@ export const studyMaterialsService = {
   async uploadMaterial(formData: FormData): Promise<{ success: boolean; materialId?: string; message?: string }> {
     try {
       const token = localStorage.getItem("auth_token")
-      const response = await fetch(`${API_BASE_URL}/api/study-materials/upload`, {
+      const response = await fetch(`${API_BASE_URL}/study-materials/upload`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -76,7 +76,7 @@ export const studyMaterialsService = {
   async generateQuestions(materialId: string): Promise<Question[]> {
     try {
       const token = localStorage.getItem("auth_token")
-      const response = await fetch(`${API_BASE_URL}/api/study-materials/${materialId}/generate-questions`, {
+      const response = await fetch(`${API_BASE_URL}/study-materials/${materialId}/generate-questions`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -104,7 +104,7 @@ export const studyMaterialsService = {
   async getMaterial(materialId: string): Promise<any> {
     try {
       const token = localStorage.getItem("auth_token")
-      const response = await fetch(`${API_BASE_URL}/api/study-materials/${materialId}`, {
+      const response = await fetch(`${API_BASE_URL}/study-materials/${materialId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

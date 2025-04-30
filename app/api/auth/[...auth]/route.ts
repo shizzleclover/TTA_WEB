@@ -1,10 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const API_BASE_URL = process.env.API_URL || "https://tta-kha7.onrender.com"
+const API_BASE_URL = process.env.API_URL || "https://tta-kha7.onrender.com/api"
 
 export async function POST(request: NextRequest, { params }: { params: { auth: string[] } }) {
   const authPath = params.auth.join("/")
-  const url = `${API_BASE_URL}/api/auth/${authPath}`
+  const url = `${API_BASE_URL}/auth/${authPath}`
 
   try {
     const body = await request.json()
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest, { params }: { params: { auth: s
 
 export async function GET(request: NextRequest, { params }: { params: { auth: string[] } }) {
   const authPath = params.auth.join("/")
-  const url = `${API_BASE_URL}/api/auth/${authPath}`
+  const url = `${API_BASE_URL}/auth/${authPath}`
 
   try {
     const token = request.headers.get("Authorization")

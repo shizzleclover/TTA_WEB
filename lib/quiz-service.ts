@@ -1,6 +1,6 @@
 import { toast } from "@/components/ui/use-toast"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tta-kha7.onrender.com"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tta-kha7.onrender.com/api"
 
 export interface QuizQuestion {
   id: string
@@ -28,7 +28,7 @@ export const quizService = {
   async getDailyQuiz(): Promise<QuizQuestion[]> {
     try {
       const token = localStorage.getItem("auth_token")
-      const response = await fetch(`${API_BASE_URL}/api/quiz/daily`, {
+      const response = await fetch(`${API_BASE_URL}/quiz/daily`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -54,7 +54,7 @@ export const quizService = {
   async submitQuizAnswers(answers: QuizAnswer[]): Promise<QuizSubmissionResult> {
     try {
       const token = localStorage.getItem("auth_token")
-      const response = await fetch(`${API_BASE_URL}/api/quiz/daily/submit-bulk`, {
+      const response = await fetch(`${API_BASE_URL}/quiz/daily/submit-bulk`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -89,7 +89,7 @@ export const quizService = {
   async getDailyLeaderboard(): Promise<any[]> {
     try {
       const token = localStorage.getItem("auth_token")
-      const response = await fetch(`${API_BASE_URL}/api/quiz/daily/leaderboard`, {
+      const response = await fetch(`${API_BASE_URL}/quiz/daily/leaderboard`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

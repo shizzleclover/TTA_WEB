@@ -1,6 +1,6 @@
 import { toast } from "@/components/ui/use-toast"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tta-kha7.onrender.com"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tta-kha7.onrender.com/api"
 
 export interface SubscriptionDetails {
   tier: "free" | "premium" | "student"
@@ -26,7 +26,7 @@ export const subscriptionService = {
   async getSubscriptionDetails(): Promise<SubscriptionDetails | null> {
     try {
       const token = localStorage.getItem("auth_token")
-      const response = await fetch(`${API_BASE_URL}/api/subscription/details`, {
+      const response = await fetch(`${API_BASE_URL}/subscription/details`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -51,7 +51,7 @@ export const subscriptionService = {
   async getPaymentHistory(): Promise<PaymentHistory[]> {
     try {
       const token = localStorage.getItem("auth_token")
-      const response = await fetch(`${API_BASE_URL}/api/subscription/payment-history`, {
+      const response = await fetch(`${API_BASE_URL}/subscription/payment-history`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -76,7 +76,7 @@ export const subscriptionService = {
   async initiateCheckout(plan: string, billingCycle: "monthly" | "annually"): Promise<{ checkoutUrl: string } | null> {
     try {
       const token = localStorage.getItem("auth_token")
-      const response = await fetch(`${API_BASE_URL}/api/subscription/checkout`, {
+      const response = await fetch(`${API_BASE_URL}/subscription/checkout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -104,7 +104,7 @@ export const subscriptionService = {
   async cancelSubscription(): Promise<boolean> {
     try {
       const token = localStorage.getItem("auth_token")
-      const response = await fetch(`${API_BASE_URL}/api/subscription/cancel`, {
+      const response = await fetch(`${API_BASE_URL}/subscription/cancel`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

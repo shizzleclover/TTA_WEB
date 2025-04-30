@@ -1,6 +1,6 @@
 import { toast } from "@/components/ui/use-toast"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tta-kha7.onrender.com"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tta-kha7.onrender.com/api"
 
 export interface VerificationRequest {
   method: "email" | "id"
@@ -30,7 +30,7 @@ export const studentVerificationService = {
         }
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/auth/verify-student`, {
+      const response = await fetch(`${API_BASE_URL}/auth/verify-student`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -68,7 +68,7 @@ export const studentVerificationService = {
 
   async verifyEmail(token: string): Promise<{ success: boolean; message?: string }> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/verify-student/${token}`, {
+      const response = await fetch(`${API_BASE_URL}/auth/verify-student/${token}`, {
         method: "GET",
       })
 
@@ -100,7 +100,7 @@ export const studentVerificationService = {
   async getVerificationStatus(): Promise<{ status: "pending" | "verified" | "rejected" | "none"; message?: string }> {
     try {
       const token = localStorage.getItem("auth_token")
-      const response = await fetch(`${API_BASE_URL}/api/auth/verify-student/status`, {
+      const response = await fetch(`${API_BASE_URL}/auth/verify-student/status`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
