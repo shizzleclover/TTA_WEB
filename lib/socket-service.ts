@@ -1,7 +1,7 @@
 import { io, type Socket } from "socket.io-client"
 import { toast } from "@/components/ui/use-toast"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://tta-kha7.onrender.com/api"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api"
 
 let socket: Socket | null = null
 
@@ -42,6 +42,31 @@ export const socketService = {
       socket.disconnect()
       socket = null
     }
+  },
+
+  joinRoom(type: string, roomId: string) {
+    if (!socket) {
+      throw new Error("Socket not connected")
+    }
+
+    socket.emit("joinRoom", { type, roomId })
+  },
+
+  on(event: string, callback: (...args: any[]) => void) {
+    if (!socket) {
+      throw new Error("Socket not connected")
+    }
+
+    socket.on(event, callback)
+    return () => socket?.off(event, callback)
+  },
+
+  emit(event: string, data: any) {
+    if (!socket) {
+      throw new Error("Socket not connected")
+    }
+
+    socket.emit(event, data)
   },
 
   joinLobby(lobbyId: string) {

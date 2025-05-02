@@ -24,10 +24,14 @@ import {
   Brain,
   Star,
   Sparkles,
+  BookOpen,
+  Users,
 } from "lucide-react"
 import confetti from "canvas-confetti"
 import { quizService, type QuizQuestion, type QuizAnswer } from "@/lib/quiz-service"
 import { useAuth } from "@/hooks/use-auth"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Card } from "@/components/ui/card"
 
 // Animation variants for framer-motion
 const containerVariants = {
@@ -63,7 +67,7 @@ const questionVariants = {
 
 export default function DailyQuizPage() {
   const router = useRouter()
-  const { isAuthenticated, isLoading: authLoading } = useAuth()
+  const { isAuthenticated, isLoading: authLoading, token } = useAuth()
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answer, setAnswer] = useState("")
@@ -82,6 +86,9 @@ export default function DailyQuizPage() {
   const [pointsEarned, setPointsEarned] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [submissionResult, setSubmissionResult] = useState<any>(null)
+  const [error, setError] = useState(null)
+  const [userProgress, setUserProgress] = useState(null)
+  const [userSubscription, setUserSubscription] = useState(null)
 
   const confettiRef = useRef<HTMLDivElement>(null)
 
@@ -96,17 +103,43 @@ export default function DailyQuizPage() {
   }, [isAuthenticated, authLoading, router])
 
   useEffect(() => {
-    const fetchQuestions = async () => {
-      if (isAuthenticated) {
-        setIsLoading(true)
-        const fetchedQuestions = await quizService.getDailyQuiz()
-        setQuestions(fetchedQuestions)
-        setIsLoading(false)
+    const fetchDailyQuiz = async () => {
+      setIsLoading(true);
+      try {
+        // Instead of directly using fetch, let's use our quizService
+        const quizQuestions = await quizService.getDailyQuiz();
+        
+        if (quizQuestions && quizQuestions.length > 0) {
+          console.log(`Successfully loaded ${quizQuestions.length} quiz questions`);
+          setQuestions(quizQuestions);
+          
+          // The quiz service doesn't return userProgress directly, so we'll need to 
+          // make a separate request or rely on the profile service for streak info
+          // For now, we'll initialize with default values
+          setUserProgress({
+            questionsAnswered: 0,
+            correctAnswers: 0,
+            score: 0,
+            streak: 0
+          });
+          
+          setUserSubscription("free"); // Default to free, update this if you have actual subscription info
+        } else {
+          console.error("No questions returned from quiz service");
+          setError("No questions available for today's quiz");
+        }
+      } catch (err) {
+        console.error("Error fetching quiz:", err);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchQuestions()
-  }, [isAuthenticated])
+    if (isAuthenticated) {
+      fetchDailyQuiz();
+    }
+  }, [token, isAuthenticated]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -397,6 +430,141 @@ export default function DailyQuizPage() {
       ))}
     </div>
   )
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[...Array(5)].map((_, index) => (
+          <Skeleton key={index} className="h-24 w-full" />
+        ))}
+      </div>
+    )
+  }
+
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>
+  }
+
+  if (!questions || questions.length === 0) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <DashboardHeader />
+        <main className="flex-1 p-6 md:p-8 relative">
+          <div className="mx-auto max-w-2xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <GameCard className="border-2 border-white/20 backdrop-blur-sm overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent z-0"></div>
+                <CardHeader className="bg-white/5 relative z-10">
+                  <motion.div 
+                    className="flex items-center gap-2"
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <Clock className="h-6 w-6 text-primary" />
+                    <CardTitle className="text-2xl">No Quiz Today</CardTitle>
+                  </motion.div>
+                  <motion.div
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <CardDescription>
+                      Today's challenge is taking a break. Check back tomorrow!
+                    </CardDescription>
+                  </motion.div>
+                </CardHeader>
+                <CardContent className="space-y-6 pt-6 relative z-10">
+                  <div className="flex justify-center py-10">
+                    <motion.div
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ 
+                        type: "spring",
+                        stiffness: 200,
+                        damping: 15,
+                        delay: 0.4
+                      }}
+                      className="relative"
+                    >
+                      <div className="w-32 h-32 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Brain className="w-16 h-16 text-primary/50" />
+                      </div>
+                      <motion.div 
+                        className="absolute -top-2 -right-2 bg-orange-100 dark:bg-orange-900 p-2 rounded-full text-orange-600 dark:text-orange-200"
+                        animate={{ 
+                          rotate: [0, 10, -10, 10, 0],
+                          scale: [1, 1.1, 1]
+                        }}
+                        transition={{ 
+                          duration: 2,
+                          repeat: Infinity,
+                          repeatType: "reverse"
+                        }}
+                      >
+                        <Sparkles className="w-6 h-6" />
+                      </motion.div>
+                    </motion.div>
+                  </div>
+                  
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.6 }}
+                    className="space-y-4"
+                  >
+                    <h3 className="text-lg font-semibold text-center">What you can do instead:</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="p-4 rounded-lg border border-white/20 bg-white/5 flex flex-col items-center gap-2">
+                        <Trophy className="h-8 w-8 text-primary/70" />
+                        <p className="text-sm font-medium text-center">Check the leaderboards</p>
+                      </div>
+                      <div className="p-4 rounded-lg border border-white/20 bg-white/5 flex flex-col items-center gap-2">
+                        <BookOpen className="h-8 w-8 text-primary/70" />
+                        <p className="text-sm font-medium text-center">Review study materials</p>
+                      </div>
+                      <div className="p-4 rounded-lg border border-white/20 bg-white/5 flex flex-col items-center gap-2 md:col-span-2">
+                        <Users className="h-8 w-8 text-primary/70" />
+                        <p className="text-sm font-medium text-center">Join a multiplayer game</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                </CardContent>
+                <CardFooter className="bg-white/5 flex gap-2 relative z-10">
+                  <Button
+                    onClick={() => router.push("/dashboard")}
+                    variant="outline"
+                    className="w-full border-white/20"
+                  >
+                    Back to Dashboard
+                  </Button>
+                  <Button
+                    onClick={() => router.push("/multiplayer")}
+                    className="w-full game-button-glow"
+                  >
+                    Try Multiplayer Mode
+                  </Button>
+                </CardFooter>
+              </GameCard>
+            </motion.div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (userSubscription === "free" && userProgress?.questionsAnswered >= 10) {
+    return (
+      <div className="text-center">
+        <p>You have reached your daily limit of 10 questions. Upgrade to access more!</p>
+        <Button variant="outline" className="mt-4">Upgrade Now</Button>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen flex-col">

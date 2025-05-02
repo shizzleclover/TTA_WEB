@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const API_BASE_URL = process.env.API_URL || "https://tta-kha7.onrender.com/api"
+const API_BASE_URL = process.env.API_URL || "http://localhost:3000/api"
 
 export async function POST(request: NextRequest, { params }: { params: { auth: string[] } }) {
   const authPath = params.auth.join("/")

@@ -1,206 +1,357 @@
 "use client"
 
-import { useState } from "react"
-import Link from "next/link"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Copy, Plus, RefreshCw, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 import { DashboardHeader } from "@/components/dashboard-header"
-import { DashboardNav } from "@/components/dashboard-nav"
-
-// Sample lobby data
-const publicLobbies = [
-  { id: 1, name: "Science Quiz", host: "Sarah J.", players: 3, maxPlayers: 6, status: "waiting" },
-  { id: 2, name: "History Trivia", host: "Michael C.", players: 4, maxPlayers: 8, status: "waiting" },
-  { id: 3, name: "Math Challenge", host: "Alex W.", players: 2, maxPlayers: 4, status: "waiting" },
-  { id: 4, name: "Geography Masters", host: "Emma D.", players: 5, maxPlayers: 6, status: "in-progress" },
-  { id: 5, name: "Literature Quiz", host: "David M.", players: 3, maxPlayers: 8, status: "waiting" },
-]
+import { GameCard } from "@/components/ui/game-card"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useAuth } from "@/hooks/use-auth"
+import { gameService, type PublicLobby } from "@/lib/game-service"
+import { toast } from "@/components/ui/use-toast"
+import { 
+  Plus, 
+  ChevronsRight, 
+  ExternalLink, 
+  Clock, 
+  Crown,
+  Users,
+  RefreshCw
+} from "lucide-react"
 
 export default function MultiplayerPage() {
+  const router = useRouter()
+  const { isAuthenticated, user } = useAuth()
   const [lobbyCode, setLobbyCode] = useState("")
+  const [publicLobbies, setPublicLobbies] = useState<PublicLobby[]>([])
+  const [userLobbies, setUserLobbies] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isJoining, setIsJoining] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
-
+  
+  useEffect(() => {
+    fetchLobbies()
+  }, [])
+  
+  const fetchLobbies = async () => {
+    setIsLoading(true)
+    try {
+      // First try to get public lobbies
+      let publicData: PublicLobby[] = [];
+      try {
+        publicData = await gameService.getPublicLobbies();
+      } catch (publicError) {
+        console.error("Error fetching public lobbies:", publicError);
+        // Don't fail the whole operation, just set empty public lobbies
+      }
+      
+      // Then try to get user's lobbies
+      let userData: any[] = [];
+      try {
+        userData = await gameService.getUserLobbies();
+      } catch (userError) {
+        console.error("Error fetching user lobbies:", userError);
+        // Don't fail the whole operation, just set empty user lobbies
+      }
+      
+      // Update state with whatever data we got
+      setPublicLobbies(publicData);
+      setUserLobbies(userData);
+    } catch (error) {
+      console.error("Error fetching lobbies:", error);
+      // Show a general error toast only if both requests failed completely
+      toast({
+        title: "Connection Error",
+        description: "Could not load game data. Please check your connection and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+  
   const handleRefresh = async () => {
     setRefreshing(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await fetchLobbies()
     setRefreshing(false)
   }
-
-  const handleCopyCode = (code: string) => {
-    navigator.clipboard.writeText(code)
-    // Show toast notification
+  
+  const handleJoinLobby = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!lobbyCode.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a lobby code",
+        variant: "destructive",
+      })
+      return
+    }
+    
+    setIsJoining(true)
+    try {
+      const result = await gameService.joinLobby({ code: lobbyCode.trim() })
+      
+      if (result?.success) {
+        toast({
+          title: "Success",
+          description: `Joined lobby "${result.lobby.name}"`,
+        })
+        router.push(`/multiplayer/${result.lobby._id}`)
+      } else {
+        toast({
+          title: "Error",
+          description: result?.message || "Failed to join lobby",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error joining lobby:", error)
+    } finally {
+      setIsJoining(false)
+    }
+  }
+  
+  // Helper function to format relative time
+  const getTimeAgo = (dateString: string): string => {
+    const now = new Date()
+    const date = new Date(dateString)
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+    
+    if (seconds < 60) return `${seconds} seconds ago`
+    const minutes = Math.floor(seconds / 60)
+    if (minutes < 60) return `${minutes} minutes ago`
+    const hours = Math.floor(minutes / 60)
+    if (hours < 24) return `${hours} hours ago`
+    const days = Math.floor(hours / 24)
+    return `${days} days ago`
   }
 
   return (
     <div className="flex min-h-screen flex-col">
       <DashboardHeader />
-      <div className="flex flex-1">
-        <DashboardNav />
-        <main className="flex-1 p-6 md:p-8">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <div className="flex flex-col gap-8">
-              <div className="flex flex-col gap-2">
+      <main className="flex-1 p-6 md:p-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mx-auto max-w-4xl"
+        >
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <div>
                 <h1 className="text-3xl font-bold tracking-tight">Multiplayer</h1>
-                <p className="text-muted-foreground">
-                  Create or join multiplayer quiz lobbies to compete with friends.
-                </p>
+                <p className="text-muted-foreground">Challenge friends or other players in real-time trivia battles.</p>
               </div>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Join a Lobby</CardTitle>
-                    <CardDescription>Enter a lobby code to join an existing game</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex gap-2">
+              
+              <Button onClick={() => router.push("/multiplayer/create")} className="game-button-glow" size="lg">
+                <Plus className="mr-2 h-4 w-4" />
+                Create Game
+              </Button>
+            </div>
+            
+            <GameCard className="relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent" />
+              <CardContent className="p-6 relative">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">Have a game code?</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Enter the 6-digit code provided by the host to join an existing game.
+                    </p>
+                    
+                    <form onSubmit={handleJoinLobby} className="flex gap-2">
                       <Input
-                        placeholder="Enter lobby code"
+                        placeholder="Enter code (e.g. ABC123)"
                         value={lobbyCode}
                         onChange={(e) => setLobbyCode(e.target.value)}
+                        maxLength={6}
+                        className="uppercase"
                       />
-                      <Button disabled={!lobbyCode}>Join</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Create a Lobby</CardTitle>
-                    <CardDescription>Start a new multiplayer quiz session</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Link href="/multiplayer/create">
-                      <Button className="w-full">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Create New Lobby
+                      <Button type="submit" disabled={isJoining}>
+                        {isJoining ? "Joining..." : "Join"}
+                        <ChevronsRight className="ml-2 h-4 w-4" />
                       </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle>Public Lobbies</CardTitle>
-                    <CardDescription>Join an existing public lobby</CardDescription>
+                    </form>
                   </div>
-                  <Button variant="outline" size="icon" onClick={handleRefresh} disabled={refreshing}>
-                    <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+                  
+                  <div className="hidden md:block border-l pl-6">
+                    <h3 className="text-xl font-semibold mb-2">Quick Start</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Create your own lobby or join one of the public games below.
+                    </p>
+                    
+                    <Button onClick={handleRefresh} variant="outline" className="w-full">
+                      <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+                      {refreshing ? "Refreshing..." : "Refresh Games"}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </GameCard>
+          </div>
+          
+          <Tabs defaultValue="public" className="space-y-8">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="public">Public Games</TabsTrigger>
+              <TabsTrigger value="my-games">My Games</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="public" className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Available Lobbies</h2>
+                <Button onClick={handleRefresh} variant="outline" size="sm" className="md:hidden">
+                  <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+                  {refreshing ? "Refreshing..." : "Refresh"}
+                </Button>
+              </div>
+              
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={`public-skeleton-${i}`} className="bg-background border rounded-lg p-4">
+                      <div className="flex justify-between items-center">
+                        <Skeleton className="h-6 w-40" />
+                        <Skeleton className="h-8 w-20" />
+                      </div>
+                      <div className="flex items-center gap-2 mt-4">
+                        <Skeleton className="h-4 w-4 rounded-full" />
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="ml-4 h-4 w-16 rounded-full" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : publicLobbies.length === 0 ? (
+                <div className="bg-background border rounded-lg p-8 text-center">
+                  <p className="text-muted-foreground mb-4">No public lobbies available at the moment.</p>
+                  <Button onClick={() => router.push("/multiplayer/create")}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create New Lobby
                   </Button>
-                </CardHeader>
-                <CardContent>
-                  <Tabs defaultValue="available">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="available">Available</TabsTrigger>
-                      <TabsTrigger value="inProgress">In Progress</TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="available" className="space-y-4 pt-4">
-                      {publicLobbies
-                        .filter((lobby) => lobby.status === "waiting")
-                        .map((lobby) => (
-                          <div key={lobby.id} className="flex items-center justify-between rounded-lg border p-4">
-                            <div className="flex items-center gap-4">
-                              <Avatar>
-                                <AvatarFallback>{lobby.host.charAt(0)}</AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <h3 className="font-medium">{lobby.name}</h3>
-                                <p className="text-sm text-muted-foreground">Hosted by {lobby.host}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-4">
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                <Users className="h-4 w-4" />
-                                <span>
-                                  {lobby.players}/{lobby.maxPlayers}
-                                </span>
-                              </div>
-                              <Button size="sm">Join</Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {publicLobbies.map((lobby) => (
+                    <motion.div 
+                      key={lobby._id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-background border rounded-lg p-4 hover:bg-accent/30 transition-colors"
+                    >
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h3 className="font-semibold">{lobby.name}</h3>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                            <Users className="h-4 w-4" />
+                            <span>{lobby.playerCount} / {lobby.maxPlayers} players</span>
+                            <div className="flex items-center ml-4">
+                              <Crown className="h-4 w-4 mr-2" />
+                              <span>{lobby.host.name}</span>
                             </div>
                           </div>
-                        ))}
-                    </TabsContent>
-
-                    <TabsContent value="inProgress" className="space-y-4 pt-4">
-                      {publicLobbies
-                        .filter((lobby) => lobby.status === "in-progress")
-                        .map((lobby) => (
-                          <div key={lobby.id} className="flex items-center justify-between rounded-lg border p-4">
-                            <div className="flex items-center gap-4">
-                              <Avatar>
-                                <AvatarFallback>{lobby.host.charAt(0)}</AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <h3 className="font-medium">{lobby.name}</h3>
-                                <p className="text-sm text-muted-foreground">Hosted by {lobby.host}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-4">
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                <Users className="h-4 w-4" />
-                                <span>
-                                  {lobby.players}/{lobby.maxPlayers}
-                                </span>
-                              </div>
-                              <div className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-100">
-                                In Progress
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Your Active Lobbies</CardTitle>
-                  <CardDescription>Lobbies you've created or joined</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="rounded-lg border">
-                    <div className="flex items-center justify-between border-b p-4">
-                      <div className="flex items-center gap-4">
-                        <div className="rounded-full bg-primary/10 p-2 text-primary">
-                          <Users className="h-4 w-4" />
                         </div>
                         <div>
-                          <h3 className="font-medium">Science Quiz</h3>
-                          <p className="text-sm text-muted-foreground">Created by you • 3/6 players</p>
+                          {!lobby.isFull ? (
+                            <Button
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  const result = await gameService.joinLobby({ code: lobby.code });
+                                  if (result?.success) {
+                                    router.push(`/multiplayer/${result.lobby._id}`);
+                                  }
+                                } catch (error) {
+                                  console.error("Error joining lobby:", error);
+                                }
+                              }}
+                            >
+                              Join
+                              <ExternalLink className="ml-2 h-3 w-3" />
+                            </Button>
+                          ) : (
+                            <Badge variant="outline">Full</Badge>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-2 rounded-lg border px-3 py-1">
-                          <span className="text-sm font-medium">ABC123</span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-5 w-5"
-                            onClick={() => handleCopyCode("ABC123")}
-                          >
-                            <Copy className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <Button size="sm">Resume</Button>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="my-games" className="space-y-4">
+              <h2 className="text-xl font-semibold">Your Active Games</h2>
+              
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[...Array(2)].map((_, i) => (
+                    <div key={`my-games-skeleton-${i}`} className="bg-background border rounded-lg p-4">
+                      <div className="flex justify-between items-center">
+                        <Skeleton className="h-6 w-40" />
+                        <Skeleton className="h-8 w-20" />
+                      </div>
+                      <div className="flex items-center gap-2 mt-4">
+                        <Skeleton className="h-4 w-4 rounded-full" />
+                        <Skeleton className="h-4 w-32" />
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </motion.div>
-        </main>
-      </div>
+                  ))}
+                </div>
+              ) : userLobbies.length === 0 ? (
+                <div className="bg-background border rounded-lg p-8 text-center">
+                  <p className="text-muted-foreground mb-4">You don't have any active games.</p>
+                  <Button onClick={() => router.push("/multiplayer/create")}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Start New Game
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {userLobbies.map((lobby) => (
+                    <motion.div 
+                      key={lobby._id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-background border rounded-lg p-4 hover:bg-accent/30 transition-colors"
+                    >
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold">{lobby.name}</h3>
+                            {lobby.host._id === user?._id && (
+                              <Badge className="bg-primary/20 text-primary hover:bg-primary/30">Host</Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                            <Users className="h-4 w-4" />
+                            <span>{lobby.players?.length || 0} / {lobby.maxPlayers} players</span>
+                            <div className="flex items-center ml-4">
+                              <Clock className="h-4 w-4 mr-1" />
+                              <span>{getTimeAgo(lobby.createdAt || new Date().toISOString())}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <Button size="sm" onClick={() => router.push(`/multiplayer/${lobby._id}`)}>
+                            {lobby.status === 'waiting' ? 'Lobby' : 'Resume'}
+                            <ChevronsRight className="ml-2 h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </motion.div>
+      </main>
     </div>
   )
 }
